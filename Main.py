@@ -19,23 +19,33 @@ class CMovieHelper(object):
         response = requests.get(self.url, self.page_index)
         return response.text
 
-    def get_page_links(self, content):
+    def get_download_links(self, content):
         pat = "\"show.php\?hash=([a-z0-9]*)?\" target=\"_blank\"\>\r\n        ([\s\S]*?)\<\/a\>"
         match_object = re.findall(pat, content)
 
+        links = []
         if match_object:
-            return match_object
-        else:
-            return []
+            for hash_code in match_object:
+                download_url = u"%sdown.php?date=%s&hash=%s" % (self.url, int(time.time()), hash_code[0])
+                links.append(download_url)
 
-    def get_download_url(self, hash_code):
-        # link address is like:
-        # http://www.mp4ba.com/down.php?date=1468040484&hash=02b44c7d83211ad922021bca1b8e0d9d66f25a48
+        return links
 
-        download_url = u"%sdown.php?date=%s&hash=%s" % (self.url, int(time.time()), hash_code)
-        print download_url
-        return download_url
-        pass
+    def get_magnet_links(self, content):
+        pat = "\"(show.php\?hash=[a-z0-9]*)?\" target=\"_blank\"\>\r\n        [\s\S]*?\<\/a\>"
+        match_object = re.findall(pat, content)
+        print match_object
+        links = []
+        if match_object:
+            sub_pat = "<a id=\"magnet\" href=\"([\s\S]*?)\">"
+            for link in match_object:
+                sub_content = requests.get(self.url+link).text
+                try:
+                    magnet_link = re.findall(sub_pat, sub_content)[0]
+                    links.append(magnet_link)
+                except IndexError:
+                    raise
+        return links
 
     def download_torrents(self, path):
         pass
@@ -43,11 +53,12 @@ class CMovieHelper(object):
     def run(self):
         content = self.get_page_content()
         # print content
-        links = self.get_page_links(content)
+        links = self.get_download_links(content)
+        print links
 
-        for link in links:
-            self.get_download_url(link[0])
-        # print links
+        links = self.get_magnet_links(content)
+        print links
+
         pass
 
 

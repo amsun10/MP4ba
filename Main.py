@@ -34,7 +34,6 @@ class CMovieHelper(object):
     def get_magnet_links(self, content):
         pat = "\"(show.php\?hash=[a-z0-9]*)?\" target=\"_blank\"\>\r\n        [\s\S]*?\<\/a\>"
         match_object = re.findall(pat, content)
-        print match_object
         links = []
         if match_object:
             sub_pat = "<a id=\"magnet\" href=\"([\s\S]*?)\">"
@@ -53,8 +52,8 @@ class CMovieHelper(object):
     def run(self):
         content = self.get_page_content()
         # print content
-        links = self.get_download_links(content)
-        print links
+        # links = self.get_download_links(content)
+        # print links
 
         links = self.get_magnet_links(content)
         print links

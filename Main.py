@@ -20,7 +20,7 @@ class CMovieHelper(object):
         return response.text
 
     def get_page_links(self, content):
-        pat = "<a href=\"show.php\?hash=([a-z0-9]*)?\" target=\"_blank\"\>\r\n        ([\s\S]*?)\<\/a\>"
+        pat = "\"show.php\?hash=([a-z0-9]*)?\" target=\"_blank\"\>\r\n        ([\s\S]*?)\<\/a\>"
         match_object = re.findall(pat, content)
 
         if match_object:
@@ -32,7 +32,7 @@ class CMovieHelper(object):
         # link address is like:
         # http://www.mp4ba.com/down.php?date=1468040484&hash=02b44c7d83211ad922021bca1b8e0d9d66f25a48
 
-        download_url = u"%sdown.php?date=%s&hash=%s" % (self.url, 1468040484, hash_code)
+        download_url = u"%sdown.php?date=%s&hash=%s" % (self.url, int(time.time()), hash_code)
         print download_url
         return download_url
         pass

@@ -2,6 +2,7 @@
 import requests
 import re
 import time
+import os
 
 from Constants import *
 
@@ -46,20 +47,52 @@ class CMovieHelper(object):
                     raise
         return links
 
-    def download_torrents(self, path):
-        pass
+    def download_torrents(self, link, dir_path=None):
+        if not dir_path:
+            dir_path = os.path.join(os.getcwd(), "torrents")
+
+        if not os.path.isdir(dir_path):
+            os.makedirs(dir_path)
+
+        with DownloadRequest(url=link, path=dir_path) as downloadHelper:
+            path = downloadHelper.download()
+            return True, path
+
 
     def run(self):
         content = self.get_page_content()
         # print content
-        # links = self.get_download_links(content)
-        # print links
-
-        links = self.get_magnet_links(content)
+        links = self.get_download_links(content)
         print links
-
+        for link in links:
+            self.download_torrents(link)
         pass
 
+class DownloadRequest(object):
+    def __init__(self, session=requests, url="", path="\\"):
+        self.session = session
+        self.url = url
+        self.path = path
+        self.response = None
+
+    def download(self):
+        print "downlaoding: %s" % self.url
+        local_filename = self.url.split('/')[-1]
+        local_file_path = os.path.join(self.path, local_filename)
+        r = requests.session().get(self.url)
+        with open(local_file_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=512 * 1024):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
+        return os.path.abspath(local_file_path)
+
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.response:
+            del self.response
 
 if __name__ == '__main__':
     myMovieHelper = CMovieHelper(URL)

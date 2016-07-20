@@ -5,13 +5,17 @@ import os
 
 
 class CMovieHelper(object):
-    def __init__(self, url, page_index=0):
+    def __init__(self, url, page_index=0, dir_path=None):
         self.url = url
         self.page_index = "page=%d" % page_index
+        self.dir_path =dir_path
         pass
 
     def set_page_index(self, index):
         self.page_index = "page=%d" % index
+
+    def set_dir_path(self, dir_path):
+        self.dir_path = dir_path
 
     def get_page_content(self):
         response = requests.get(self.url, self.page_index)
@@ -50,14 +54,14 @@ class CMovieHelper(object):
                     raise
         return links
 
-    def download_torrents(self, link, file_name=None, dir_path=None):
-        if not dir_path:
-            dir_path = os.path.join(os.getcwd(), "torrents")
+    def download_torrents(self, link, file_name=None):
+        if not self.dir_path:
+            self.dir_path = os.path.join(os.getcwd(), "torrents")
 
-        if not os.path.isdir(dir_path):
-            os.makedirs(dir_path)
+        if not os.path.isdir(self.dir_path):
+            os.makedirs(self.dir_path)
 
-        with DownloadRequest(url=link, path=dir_path, file_name=file_name, ext="torrent") as downloadHelper:
+        with DownloadRequest(url=link, path=self.dir_path, file_name=file_name, ext="torrent") as downloadHelper:
             path = downloadHelper.download()
             return True, path
 

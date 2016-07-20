@@ -13,7 +13,7 @@ class CMovieHelper(object):
         pass
 
     def set_page_index(self, index):
-        self.page_index = index
+        self.page_index = "page=%d" % page_index
 
     def get_page_content(self):
         response = requests.get(self.url, self.page_index)

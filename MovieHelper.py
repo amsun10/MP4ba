@@ -3,8 +3,6 @@ import requests
 import re
 import os
 
-from Constants import *
-
 
 class CMovieHelper(object):
     def __init__(self, url, page_index=0):
@@ -108,8 +106,3 @@ class DownloadRequest(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.response:
             del self.response
-
-if __name__ == '__main__':
-    myMovieHelper = CMovieHelper(URL)
-    myMovieHelper.run()
-    pass

@@ -1,14 +1,18 @@
 # -*- coding:utf-8 -*-
-import requests
 import re
 import os
+import requests
 
 
 class CMovieHelper(object):
-    def __init__(self, url, page_index=0, dir_path=None):
+    def __init__(self, url, page_index=0, dir_path=None, session=None):
         self.url = url
         self.page_index = "page=%d" % page_index
-        self.dir_path =dir_path
+        self.dir_path = dir_path
+        if not session:
+            self.session = requests.session()
+        else:
+            self.session = session
         pass
 
     def set_page_index(self, index):
@@ -18,7 +22,7 @@ class CMovieHelper(object):
         self.dir_path = dir_path
 
     def get_page_content(self):
-        response = requests.get(self.url, self.page_index)
+        response = self.session.get(self.url, params=self.page_index)
         return response.text
 
     def get_download_links(self, content):
@@ -30,7 +34,7 @@ class CMovieHelper(object):
             sub_pat = "<a id=\"download\" href=\"([\s\S]*?)\">"
             for link in match_object:
                 print self.url+link[0]
-                sub_content = requests.get(self.url + link[0]).text
+                sub_content = self.session.get(self.url + link[0]).text
                 try:
                     download_link = re.findall(sub_pat, sub_content)[0]
                     links.append((self.url + download_link, link[1]))
@@ -46,7 +50,7 @@ class CMovieHelper(object):
         if match_object:
             sub_pat = "<a id=\"magnet\" href=\"([\s\S]*?)\">"
             for link in match_object:
-                sub_content = requests.get(self.url+link).text
+                sub_content = self.session.get(self.url+link).text
                 try:
                     magnet_link = re.findall(sub_pat, sub_content)[0]
                     links.append(magnet_link)
@@ -61,7 +65,7 @@ class CMovieHelper(object):
         if not os.path.isdir(self.dir_path):
             os.makedirs(self.dir_path)
 
-        with DownloadRequest(url=link, path=self.dir_path, file_name=file_name, ext="torrent") as downloadHelper:
+        with DownloadRequest(session=self.session, url=link, path=self.dir_path, file_name=file_name, ext="torrent") as downloadHelper:
             path = downloadHelper.download()
             return True, path
 
@@ -70,11 +74,9 @@ class CMovieHelper(object):
         # print content
         links = self.get_download_links(content)
         print links
-        # return
         for link in links:
             self.download_torrents(link[0], file_name=link[1])
         pass
-
 
 class DownloadRequest(object):
     def __init__(self, session=requests, url="", path="\\", file_name=None, ext=None):
@@ -97,7 +99,7 @@ class DownloadRequest(object):
             local_filename += ".%s" % self.ext
 
         local_file_path = os.path.join(self.path, local_filename)
-        r = requests.session().get(self.url)
+        r = self.session.get(self.url)
         with open(local_file_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=512 * 1024):
                 if chunk:  # filter out keep-alive new chunks
